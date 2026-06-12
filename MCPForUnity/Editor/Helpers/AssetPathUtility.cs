@@ -7,6 +7,7 @@ using Newtonsoft.Json.Linq;
 using UnityEditor;
 using UnityEngine;
 using PackageInfo = UnityEditor.PackageManager.PackageInfo;
+using MCPForUnity.Editor.Helpers.Compat;
 
 namespace MCPForUnity.Editor.Helpers
 {

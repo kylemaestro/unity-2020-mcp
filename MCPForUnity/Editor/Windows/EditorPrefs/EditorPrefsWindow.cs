@@ -8,6 +8,7 @@ using MCPForUnity.Editor.Helpers;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
+using DropdownField = MCPForUnity.Editor.Helpers.Compat.DropdownField;
 
 namespace MCPForUnity.Editor.Windows
 {

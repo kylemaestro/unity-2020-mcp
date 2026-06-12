@@ -63,12 +63,23 @@ namespace MCPForUnity.Editor.Tools.Build
             }
         }
 
+#if UNITY_2021_2_OR_NEWER
         public static NamedBuildTarget GetNamedBuildTarget(BuildTarget target)
         {
             return NamedBuildTarget.FromBuildTargetGroup(GetTargetGroup(target));
         }
+#else
+        public static BuildTargetGroup GetNamedBuildTarget(BuildTarget target)
+        {
+            return GetTargetGroup(target);
+        }
+#endif
 
+#if UNITY_2021_2_OR_NEWER
         public static string TryResolveNamedBuildTarget(string name, out NamedBuildTarget namedTarget)
+#else
+        public static string TryResolveNamedBuildTarget(string name, out BuildTargetGroup namedTarget)
+#endif
         {
             if (!TryResolveBuildTarget(name, out var buildTarget))
             {
@@ -85,7 +96,11 @@ namespace MCPForUnity.Editor.Tools.Build
                     : $"Build target group could not be resolved for target '{buildTarget}'.";
             }
 
+#if UNITY_2021_2_OR_NEWER
             namedTarget = NamedBuildTarget.FromBuildTargetGroup(targetGroup);
+#else
+            namedTarget = targetGroup;
+#endif
             return null;
         }
 
@@ -154,12 +169,18 @@ namespace MCPForUnity.Editor.Tools.Build
 
         public static int ResolveSubtarget(string subtarget)
         {
+#if UNITY_2021_2_OR_NEWER
             if (string.IsNullOrEmpty(subtarget))
                 return (int)StandaloneBuildSubtarget.Player;
             string lower = subtarget.ToLowerInvariant();
             if (lower == "server")
                 return (int)StandaloneBuildSubtarget.Server;
             return (int)StandaloneBuildSubtarget.Player;
+#else
+            // StandaloneBuildSubtarget does not exist before 2021.2; headless/server
+            // builds are configured differently there. Always build the player.
+            return 0;
+#endif
         }
     }
 }

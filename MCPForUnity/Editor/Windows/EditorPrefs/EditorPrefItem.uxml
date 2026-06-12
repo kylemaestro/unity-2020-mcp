@@ -10,7 +10,7 @@
             <ui:TextField name="value-field" class="value-field" />
             
             <!-- Type dropdown -->
-            <ui:DropdownField name="type-dropdown" class="type-dropdown" choices="String,Int,Float,Bool" index="0" />
+            <MCPForUnity.Editor.Helpers.Compat.DropdownField name="type-dropdown" class="type-dropdown" choices="String,Int,Float,Bool" index="0" />
             
             <!-- Action buttons -->
             <ui:VisualElement class="action-buttons">

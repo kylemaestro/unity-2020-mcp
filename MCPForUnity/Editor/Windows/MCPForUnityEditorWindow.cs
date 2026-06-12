@@ -44,7 +44,7 @@ namespace MCPForUnity.Editor.Windows
         private VisualElement toolsPanel;
         private VisualElement resourcesPanel;
 
-        private static readonly HashSet<MCPForUnityEditorWindow> OpenWindows = new();
+        private static readonly HashSet<MCPForUnityEditorWindow> OpenWindows = new HashSet<MCPForUnityEditorWindow>();
         private bool guiCreated = false;
         private bool toolsLoaded = false;
         private bool resourcesLoaded = false;
@@ -984,19 +984,44 @@ namespace MCPForUnity.Editor.Windows
 
         private static void BatchUpmAdd(string[] packageIds, Action onComplete = null)
         {
+#if UNITY_2021_2_OR_NEWER
             var request = UnityEditor.PackageManager.Client.AddAndRemove(packageIds, null);
             EditorUtility.DisplayProgressBar("Installing Packages", $"Installing {packageIds.Length} package(s)...", 0.5f);
             PollUpmRequest(request, "install", onComplete);
+#else
+            // 2020.3: Client.AddAndRemove does not exist; install sequentially.
+            if (packageIds == null || packageIds.Length == 0) { onComplete?.Invoke(); return; }
+            EditorUtility.DisplayProgressBar("Installing Packages", $"Installing {packageIds.Length} package(s)...", 0.5f);
+            void AddNext(int index)
+            {
+                if (index >= packageIds.Length) { onComplete?.Invoke(); return; }
+                var req = UnityEditor.PackageManager.Client.Add(packageIds[index]);
+                PollUpmRequest(req, "install", () => AddNext(index + 1));
+            }
+            AddNext(0);
+#endif
         }
 
         private static void BatchUpmRemove(string[] packageIds, Action onComplete = null)
         {
+#if UNITY_2021_2_OR_NEWER
             var request = UnityEditor.PackageManager.Client.AddAndRemove(null, packageIds);
             EditorUtility.DisplayProgressBar("Removing Packages", $"Removing {packageIds.Length} package(s)...", 0.5f);
             PollUpmRequest(request, "remove", onComplete);
+#else
+            if (packageIds == null || packageIds.Length == 0) { onComplete?.Invoke(); return; }
+            EditorUtility.DisplayProgressBar("Removing Packages", $"Removing {packageIds.Length} package(s)...", 0.5f);
+            void RemoveNext(int index)
+            {
+                if (index >= packageIds.Length) { onComplete?.Invoke(); return; }
+                var req = UnityEditor.PackageManager.Client.Remove(packageIds[index]);
+                PollUpmRequest(req, "remove", () => RemoveNext(index + 1));
+            }
+            RemoveNext(0);
+#endif
         }
 
-        private static void PollUpmRequest(UnityEditor.PackageManager.Requests.AddAndRemoveRequest request, string verb, Action onComplete)
+        private static void PollUpmRequest(UnityEditor.PackageManager.Requests.Request request, string verb, Action onComplete)
         {
             EditorApplication.CallbackFunction pollCallback = null;
             pollCallback = () =>
